@@ -9,7 +9,7 @@ export const createDonate = async (req, res) => {
     if (result.success) {
       res.status(201).json({ message: "Transakcja utworzona pomyślnie", url: result.url });
     } else {
-      res.status(400).json({ message: "Błąd podczas tworzenia transakcji---", error: result.error });
+      res.status(400).json({ message: "Błąd podczas tworzenia transakcji", error: result.error });
     }
   } catch (error) {
     res.status(500).json({ message: "Wewnętrzny błąd serwera", error: error.message });

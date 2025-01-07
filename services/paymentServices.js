@@ -112,7 +112,7 @@ export const createTransaction = async ({ sessionId, amount, description, email 
   console.log("Dane przekazywane do createTransaction:", { sessionId, amount, description, email });
   try {
     const sign = generateRegisterSign(sessionId, amount);
-    console.log(API_URL, CRC_KEY, MERCHANT_ID, REPORT_KEY, URL)
+    
 
     const payload = {
       merchantId: MERCHANT_ID,

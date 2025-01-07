@@ -4,7 +4,7 @@ import axios from "axios";
 export const fetchRegisterPayment = async ({ amount, description, email }) => {
   try {
     // URL endpointu
-    const url = "http://localhost:5000/api/payment/donate";
+    const url = "https://testowaniepayments.onrender.com/api/payment/donate";
    
   // const url = "https://testowaniebe.onrender.com/api/registerPayment/registerPayment"
 
