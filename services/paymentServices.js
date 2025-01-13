@@ -1,7 +1,7 @@
 import axios from "axios";
 import crypto from "crypto";
-import { findUserById , addPayment } from "./dataServices.js";
-import dotenv from 'dotenv';
+import { findUserById, addPayment } from "./dataServices.js";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -15,13 +15,15 @@ const CONFIG = {
 
 const { API_URL, CRC_KEY, MERCHANT_ID, REPORT_KEY, URL } = CONFIG;
 
-const basicAuth = Buffer.from(`${MERCHANT_ID}:${REPORT_KEY}`).toString("base64");
+const basicAuth = Buffer.from(`${MERCHANT_ID}:${REPORT_KEY}`).toString(
+  "base64"
+);
 
 export const createSessionId = () => {
-  const uuid = crypto.randomUUID(); 
-  const timestamp = Date.now();    
-  return `${uuid}-${timestamp}`;  
-}
+  const uuid = crypto.randomUUID();
+  const timestamp = Date.now();
+  return `${uuid}-${timestamp}`;
+};
 
 export const generateRegisterSign = (sessionId, amount) => {
   const checkSum = `{"sessionId":"${sessionId}","merchantId":${MERCHANT_ID},"amount":${amount},"currency":"PLN","crc":"${CRC_KEY}"}`;
@@ -30,31 +32,28 @@ export const generateRegisterSign = (sessionId, amount) => {
 
 export const generateFinalizePaymentSign = (sessionId, orderId, amount) => {
   const params = {
-    sessionId, 
-    orderId, 
-    amount, 
-    currency: "PLN", 
-    crc: CRC_KEY 
+    sessionId,
+    orderId,
+    amount,
+    currency: "PLN",
+    crc: CRC_KEY,
   };
-  
+
   const combinedString = JSON.stringify(params);
-  const hash = crypto.createHash('sha384').update(combinedString).digest('hex');
+  const hash = crypto.createHash("sha384").update(combinedString).digest("hex");
 
-  return hash
-}
+  return hash;
+};
 
-
-export const createPaymentForUser = async ({ userId }) => {
- // console.log("Dane przekazywane do createTransaction:", { sessionId, amount, description, email });
+export const createPaymentForUser = async (userId) => {
   try {
     const sessionId = createSessionId();
     const sign = generateRegisterSign(sessionId, 10000);
     const user = findUserById(userId);
-    
-    
+
     const payload = {
       merchantId: MERCHANT_ID,
-      posId: MERCHANT_ID, 
+      posId: MERCHANT_ID,
       sessionId,
       amount: 10000,
       currency: "PLN",
@@ -62,31 +61,38 @@ export const createPaymentForUser = async ({ userId }) => {
       email: user.email,
       country: "PL",
       language: "pl",
-      urlReturn: "https://sandbox.przelewy24.pl/api/v1",
+      urlReturn: `${URL}/api/payment/return/${sessionId}`, // na nasz front-end
       sign: sign,
-      urlStatus: `${URL}/api/payment/finalizePayment`
+      urlStatus: `${URL}/api/payment/finalizePayment`,
     };
 
-    const response = await axios.post(`${API_URL}/transaction/register`, payload, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${basicAuth}`, 
-      },
-    });
+    const response = await axios.post(
+      `${API_URL}/transaction/register`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${basicAuth}`,
+        },
+      }
+    );
+
     if (response.data && response.data.data) {
       console.log("Transakcja utworzona pomyślnie:", response.data);
 
       const payment = {
-        id:sessionId, 
-        title:'gala registration', 
-        amount, token:response.data.data.token,
-        userId, 
+        id: sessionId,
+        title:'gala registration',
+        amount: payload.amount,
+        token:response.data.data.token,
+        userId,
+        urlReturn: "https://fundacja-hematologiczna.github.io/gala/#/rejestracja",
         paid:false,
       }
-       
+
       addPayment(payment);
-     
-      console.log('userData:', payload, 'token:', response.data.data.token, 'url:', 
+
+      console.log('userData:', payload, 'token:', response.data.data.token, 'url:',
         `https://sandbox.przelewy24.pl/trnRequest/${response.data.data.token}`)
 
       return {
@@ -96,27 +102,38 @@ export const createPaymentForUser = async ({ userId }) => {
       };
     } else {
       console.error("Błąd w odpowiedzi od Przelewy24:", response.data);
-      return { success: false, error: "Nieoczekiwany błąd serwera Przelewy24." };
+      return {
+        success: false,
+        error: "Nieoczekiwany błąd serwera Przelewy24.",
+      };
     }
   } catch (error) {
     console.error("Błąd podczas tworzenia transakcji---:", error.message);
     if (error.response) {
       console.error("Szczegóły błędu:", error.response.data);
     }
-     return { success: false, error: error.message };
-   }
+    return { success: false, error: error.message };
+  }
 };
 
-
-export const createTransaction = async ({ sessionId, amount, description, email }) => {
-  console.log("Dane przekazywane do createTransaction:", { sessionId, amount, description, email });
+export const createTransaction = async ({
+  sessionId,
+  amount,
+  description,
+  email,
+}) => {
+  console.log("Dane przekazywane do createTransaction:", {
+    sessionId,
+    amount,
+    description,
+    email,
+  });
   try {
     const sign = generateRegisterSign(sessionId, amount);
-    
 
     const payload = {
       merchantId: MERCHANT_ID,
-      posId: MERCHANT_ID, 
+      posId: MERCHANT_ID,
       sessionId,
       amount,
       currency: "PLN",
@@ -124,34 +141,40 @@ export const createTransaction = async ({ sessionId, amount, description, email 
       email,
       country: "PL",
       language: "pl",
-      urlReturn: "https://sandbox.przelewy24.pl/api/v1",
+      urlReturn: `${URL}/api/payment/return/${sessionId}`,
       sign: sign,
-      urlStatus: `${URL}/api/payment/finalizePayment`
+      urlStatus: `${URL}/api/payment/finalizePayment`,
     };
 
-    console.log(`${API_URL}/transaction/register`)
+    console.log(`${API_URL}/transaction/register`);
 
-    const response = await axios.post(`${API_URL}/transaction/register`, payload, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${basicAuth}`, 
-      },
-    });
+    const response = await axios.post(
+      `${API_URL}/transaction/register`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${basicAuth}`,
+        },
+      }
+    );
     if (response.data && response.data.data) {
       console.log("Transakcja utworzona pomyślnie:", response.data);
 
       const payment = {
-        id:sessionId, 
-        title:'donate', 
-        amount, 
-        token:response.data.data.token,
-        paid:false,
-      }
-       
+        id: sessionId,
+        title: "donate",
+        amount,
+        token: response.data.data.token,
+        urlReturn: "https://fundacja-hematologiczna.github.io/gala/#/rejestracja",
+        paid: false,
+      };
+      console.log("payment", payment);
+
       addPayment(payment);
-     
-      // console.log('userData:', payload, 'token:', response.data.data.token, 'url:', 
-      //   `https://sandbox.przelewy24.pl/trnRequest/${response.data.data.token}` )
+
+      console.log('userData:', payload, 'token:', response.data.data.token, 'url:',
+        `https://sandbox.przelewy24.pl/trnRequest/${response.data.data.token}` )
 
       return {
         success: true,
@@ -160,42 +183,47 @@ export const createTransaction = async ({ sessionId, amount, description, email 
       };
     } else {
       console.error("Błąd w odpowiedzi od Przelewy24:", response.data);
-      return { success: false, error: "Nieoczekiwany błąd serwera Przelewy24." };
+      return {
+        success: false,
+        error: "Nieoczekiwany błąd serwera Przelewy24.",
+      };
     }
   } catch (error) {
     console.error("Błąd podczas tworzenia transakcji:", error.message);
     if (error.response) {
       console.error("Szczegóły błędu:", error.response.data);
     }
-     return { success: false, error: error.message };
-   }
+    return { success: false, error: error.message };
+  }
 };
 
-
-
-
-export const verifyTransaction = async ({ sessionId, amount, orderId, sign }) => {
+export const verifyTransaction = async ({
+  sessionId,
+  amount,
+  orderId,
+  sign,
+}) => {
   try {
     const payload = {
-    merchantId: MERCHANT_ID,
-    posId: MERCHANT_ID, 
-    sessionId: sessionId,
-    amount: amount,
-    currency: "PLN",
-    orderId,
-    sign: sign,
+      merchantId: MERCHANT_ID,
+      posId: MERCHANT_ID,
+      sessionId,
+      amount,
+      currency: "PLN",
+      orderId,
+      sign,
     };
 
     const response = await axios.put(`${API_URL}/transaction/verify`, payload, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Basic ${basicAuth}`, 
+        Authorization: `Basic ${basicAuth}`,
       },
     });
 
     if (response.data && response.data.data) {
       console.log("Transakcja zweryfikowana:", response.data);
-      console.log('userData:', payload, 'token:', response.data.data.token)
+      console.log("userData:", payload, "token:", response.data.data.token);
       return {
         success: true,
         token: response.data.data.token,
@@ -203,13 +231,16 @@ export const verifyTransaction = async ({ sessionId, amount, orderId, sign }) =>
       };
     } else {
       console.error("Błąd w odpowiedzi od Przelewy24:", response.data);
-      return { success: false, error: "Nieoczekiwany błąd serwera Przelewy24." };
+      return {
+        success: false,
+        error: "Nieoczekiwany błąd serwera Przelewy24.",
+      };
     }
   } catch (error) {
     console.error("Błąd podczas tworzenia transakcji:", error.message);
     if (error.response) {
       console.error("Szczegóły błędu:", error.response.data);
     }
-     return { success: false, error: error.message };
-   }
+    return { success: false, error: error.message };
+  }
 };

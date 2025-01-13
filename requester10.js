@@ -4,8 +4,8 @@ import axios from "axios";
 export const fetchRegisterPayment = async ({ amount, description, email }) => {
   try {
     // URL endpointu
-    //const url = "https://testowaniepayments.onrender.com/api/payment/donate";
-    const url = "http://localhost:5000/api/payment/finalizePayment";
+    const url = "https://testowaniepayments.onrender.com/api/payment/donate";
+   // const url = "http://localhost:5000/api/payment/finalizePayment";
    
   // const url = "https://testowaniebe.onrender.com/api/registerPayment/registerPayment"
 
@@ -20,22 +20,22 @@ export const fetchRegisterPayment = async ({ amount, description, email }) => {
 
 
 
-    const testFinalize = {
-        merchantId: 155512,
-        posId: 155512,
-        sessionId: '76acdf8b-7c22-4230-aefe-254edd16d8b5-1736279137053',
-        amount: 410,
-        originAmount: 410,
-        currency: 'PLN',
-        orderId: 1012988,
-        methodId: 119,
-        statement: 'p24-J9Z-Z6R-J7T',
-        sign: 'bdc938fd5435fd6c479bd1ab8d6db7dd8fdb7f95b75fbca6db1b06eab95084643bd769c0f322d0668c8458e40bb4255d'
-      }
+    // const testFinalize = {
+    //     merchantId: 155512,
+    //     posId: 155512,
+    //     sessionId: '76acdf8b-7c22-4230-aefe-254edd16d8b5-1736279137053',
+    //     amount: 410,
+    //     originAmount: 410,
+    //     currency: 'PLN',
+    //     orderId: 1012988,
+    //     methodId: 119,
+    //     statement: 'p24-J9Z-Z6R-J7T',
+    //     sign: 'bdc938fd5435fd6c479bd1ab8d6db7dd8fdb7f95b75fbca6db1b06eab95084643bd769c0f322d0668c8458e40bb4255d'
+    //   }
     
 
     // Wysłanie żądania POST
-    const response = await axios.post(url, testFinalize, {
+    const response = await axios.post(url, payload, {
       headers: {
         "Content-Type": "application/json", // Nagłówek określający format danych
       },
