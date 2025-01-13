@@ -22,16 +22,18 @@ export const redirectUser = (req, res) => {
   const transactionId = req.params.transactionId;
   const transaction = findPaymentById(transactionId);
 
-  if (!transaction) {
-      res.redirect(`${url}?status=error`);
-  }
+  res.redirect(`${url}`)
 
-   const url = transaction.urlReturn
+  // if (!transaction) {
+  //     res.redirect(`${url}?status=error`);
+  // }
 
-  if (transaction.paid) {
-    res.redirect(`${url}?status=success`);
-  } else {
-    res.redirect(`${url}?status=failure`);
-  }
+  //  const url = transaction.urlReturn
+
+  // if (transaction.paid) {
+  //   res.redirect(`${url}?status=success`);
+  // } else {
+  //   res.redirect(`${url}?status=failure`);
+  // }
 };
 
